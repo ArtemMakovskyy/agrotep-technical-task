@@ -1,5 +1,7 @@
 <!doctype html>
-<html lang="uk">
+<html lang="uk"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -22,42 +24,50 @@
 <div class="container my-4">
   <h1 class="text-center mb-4">Рибка на продаж</h1>
 
-  <div class="d-flex justify-content-end mb-3">
-    <a class="btn btn-success" href="/fish/create">Додати рибку</a>
+  <div class="d-flex justify-content-between mb-3">
+    <a class="btn btn-success" href="/fish/create" sec:authorize="hasRole('ADMIN')">Додати рибку</a>
+
+    <a th:href="@{/logout}" class="btn btn-outline-secondary" sec:authorize="isAuthenticated()">Вийти</a>
   </div>
 
-  <table class="table table-bordered table-hover align-middle">
-    <thead class="table-light">
-    <tr>
-      <th>#</th>
-      <th>Назва</th>
-      <th>Ціна</th>
-      <th>Дата вилову</th>
-      <th>Фото</th>
-      <th>Дії</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="fish : ${fishlist}">
-      <td th:text="${fish.id}"></td>
-      <td th:text="${fish.name}"></td>
-      <td th:text="${fish.price} + ' ₴'"></td>
-      <td th:text="${fish.catchDate.toString().substring(0,10)}"></td>
-      <td>
+  <div sec:authorize="isAnonymous()" class="text-center mt-5">
+    <p>Щоб переглянути список риб, увійдіть у систему:</p>
+    <a href="/login" class="btn btn-primary">Увійти</a>
+  </div>
 
-        <div class="image-container" th:if="${fish.imageFileNamesList != null}">
-          <div th:each="imgName : ${fish.imageFileNamesList}">
-            <img th:src="@{'/images/' + imgName}" alt="Фото рибки">
+  <div sec:authorize="isAuthenticated()">
+    <table class="table table-bordered table-hover align-middle">
+      <thead class="table-light">
+      <tr>
+        <th>#</th>
+        <th>Назва</th>
+        <th>Ціна</th>
+        <th>Дата вилову</th>
+        <th>Фото</th>
+        <th sec:authorize="hasRole('ADMIN')">Дії</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="fish : ${fishlist}">
+        <td th:text="${fish.id}"></td>
+        <td th:text="${fish.name}"></td>
+        <td th:text="${fish.price} + ' ₴'"></td>
+        <td th:text="${fish.catchDate.toString().substring(0,10)}"></td>
+        <td>
+          <div class="image-container" th:if="${fish.imageFileNamesList != null}">
+            <div th:each="imgName : ${fish.imageFileNamesList}">
+              <img th:src="@{'/images/' + imgName}" alt="Фото рибки">
+            </div>
           </div>
-        </div>
-      </td>
-      <td>
-        <button class="btn btn-danger btn-sm"
-                th:onclick="'deleteFish(' + ${fish.id} + ')'">Прибрати</button>
-      </td>
-    </tr>
-    </tbody>
-  </table>
+        </td>
+        <td sec:authorize="hasRole('ADMIN')">
+          <button class="btn btn-danger btn-sm"
+                  th:onclick="'deleteFish(' + ${fish.id} + ')'">Прибрати</button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <script>
