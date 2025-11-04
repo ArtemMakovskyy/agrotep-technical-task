@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.util.Date;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,6 +25,13 @@ public class Fish {
 
     private Date catchDate;
 
-    private String imageFileName;
+    private String imageFileNames;
 
+    @Transient
+    public java.util.List<String> getImageFileNamesList() {
+        if (imageFileNames == null || imageFileNames.isEmpty()) {
+            return java.util.List.of();
+        }
+        return java.util.Arrays.asList(imageFileNames.split("\\s*,\\s*"));
+    }
 }

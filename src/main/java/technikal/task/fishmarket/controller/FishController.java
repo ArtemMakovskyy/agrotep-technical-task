@@ -25,7 +25,7 @@ public class FishController {
     private static final String CREATE_FISH_PAGE = "createFish";
     private static final String MODEL_FISH_LIST = "fishlist";
     private static final String MODEL_FISH_DTO = "fishDto";
-    private static final String FIELD_IMAGE_FILE = "imageFile";
+    private static final String FIELD_IMAGE_FILE = "imageFiles";
 
     private final FishService fishService;
 
@@ -43,9 +43,8 @@ public class FishController {
 
     @PostMapping("/create")
     public String addFish(@Valid @ModelAttribute FishDto fishDto, BindingResult result) {
-        if (fishDto.getImageFile().isEmpty()) {
-            result.addError(new FieldError(
-                    MODEL_FISH_DTO, FIELD_IMAGE_FILE, "Потрібне фото рибки"));
+        if (fishDto.getImageFiles() == null || fishDto.getImageFiles().isEmpty()) {
+            result.addError(new FieldError(MODEL_FISH_DTO, FIELD_IMAGE_FILE, "Потрібне хоча б одне фото рибки"));
         }
 
         if (result.hasErrors()) {
@@ -55,8 +54,7 @@ public class FishController {
         try {
             fishService.addFish(fishDto);
         } catch (Exception e) {
-            result.addError(new FieldError(
-                    MODEL_FISH_DTO, FIELD_IMAGE_FILE, "Помилка при збереженні файлу"));
+            result.addError(new FieldError(MODEL_FISH_DTO, FIELD_IMAGE_FILE, "Помилка при збереженні файлу"));
             return CREATE_FISH_PAGE;
         }
 
@@ -68,5 +66,4 @@ public class FishController {
         fishService.deleteFish(id);
         return REDIRECT_FISH;
     }
-
 }

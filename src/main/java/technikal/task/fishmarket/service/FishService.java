@@ -1,6 +1,14 @@
 package technikal.task.fishmarket.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,18 +19,11 @@ import technikal.task.fishmarket.model.Fish;
 import technikal.task.fishmarket.model.FishDto;
 import technikal.task.fishmarket.repository.FishRepository;
 
-import java.io.InputStream;
-import java.nio.file.*;
-import java.util.Date;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-
 @Service
 @RequiredArgsConstructor
 public class FishService {
 
     private static final String IMAGE_DIR = "public/images/";
-
     private final FishRepository fishRepository;
 
     public List<Fish> getAllFish() {
@@ -30,19 +31,28 @@ public class FishService {
     }
 
     public void addFish(FishDto fishDto) {
-        MultipartFile image = fishDto.getImageFile();
-        if (image == null || image.isEmpty()) {
-            throw new InvalidFishDataException("Фото рибки обов'язкове");
+        List<MultipartFile> images = fishDto.getImageFiles();
+        if (images == null || images.isEmpty() || images.size() > 3) {
+            throw new InvalidFishDataException("Кількість зображень має бути від 1 до 3");
         }
 
+        List<String> storedFilenames = new ArrayList<>();
         Date catchDate = new Date();
-        String storageFileName = catchDate.getTime() + "_" + image.getOriginalFilename();
 
-        saveImage(image, storageFileName);
+        for (int i = 0; i < images.size(); i++) {
+            MultipartFile image = images.get(i);
+            if (image == null || image.isEmpty()) {
+                throw new InvalidFishDataException("Порожнє зображення не дозволено");
+            }
+
+            String storageFileName = catchDate.getTime() + "_" + i + "_" + image.getOriginalFilename();
+            saveImage(image, storageFileName);
+            storedFilenames.add(storageFileName);
+        }
 
         Fish fish = new Fish();
         fish.setCatchDate(catchDate);
-        fish.setImageFileName(storageFileName);
+        fish.setImageFileNames(String.join(",", storedFilenames));
         fish.setName(fishDto.getName());
         fish.setPrice(fishDto.getPrice());
 
@@ -53,8 +63,23 @@ public class FishService {
         Fish fish = fishRepository.findById(id)
                 .orElseThrow(() -> new FishNotFoundException(id));
 
-        deleteImage(fish.getImageFileName());
+        deleteImages(fish.getImageFileNames());
         fishRepository.delete(fish);
+    }
+
+    private void deleteImages(String fileNames) {
+        if (fileNames == null || fileNames.isEmpty()) return;
+
+        for (String fileName : fileNames.split("\\s*,\\s*")) {
+            Path imagePath = Paths.get(IMAGE_DIR + fileName);
+            try {
+                if (Files.exists(imagePath)) {
+                    Files.delete(imagePath);
+                }
+            } catch (Exception ex) {
+                throw new ImageStorageException("Не вдалося видалити зображення " + fileName, ex);
+            }
+        }
     }
 
     private void saveImage(MultipartFile image, String fileName) {
@@ -63,24 +88,11 @@ public class FishService {
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
-
             try (InputStream inputStream = image.getInputStream()) {
                 Files.copy(inputStream, uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
             }
-
         } catch (Exception ex) {
             throw new ImageStorageException("Помилка при збереженні зображення", ex);
-        }
-    }
-
-    private void deleteImage(String fileName) {
-        Path imagePath = Paths.get(IMAGE_DIR + fileName);
-        try {
-            if (Files.exists(imagePath)) {
-                Files.delete(imagePath);
-            }
-        } catch (Exception ex) {
-            throw new ImageStorageException("Не вдалося видалити зображення " + fileName, ex);
         }
     }
 }
