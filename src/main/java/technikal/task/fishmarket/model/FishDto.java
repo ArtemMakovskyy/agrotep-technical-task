@@ -10,7 +10,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Getter
 @Setter
 public class FishDto {
-
     @NotEmpty(message = "потрібна назва рибки")
     private String name;
 
@@ -18,5 +17,4 @@ public class FishDto {
     private double price;
 
     private List<MultipartFile> imageFiles;
-
 }

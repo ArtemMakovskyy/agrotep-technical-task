@@ -62,7 +62,7 @@ public class FishController {
     }
 
     @DeleteMapping("/delete")
-    public String deleteFish(@RequestParam int id) {
+    public String deleteFish(@RequestParam Long id) {
         fishService.deleteFish(id);
         return REDIRECT_FISH;
     }

@@ -1,5 +1,6 @@
 package technikal.task.fishmarket.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -15,16 +16,19 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Fish {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     private String name;
 
     private double price;
 
+    @Column(name = "catch_date")
     private Date catchDate;
 
+    @Column(name = "image_file_names")
     private String imageFileNames;
 
     @Transient

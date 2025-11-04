@@ -44,7 +44,6 @@ public class FishService {
             if (image == null || image.isEmpty()) {
                 throw new InvalidFishDataException("Порожнє зображення не дозволено");
             }
-
             String storageFileName = catchDate.getTime() + "_" + i + "_" + image.getOriginalFilename();
             saveImage(image, storageFileName);
             storedFilenames.add(storageFileName);
@@ -55,11 +54,10 @@ public class FishService {
         fish.setImageFileNames(String.join(",", storedFilenames));
         fish.setName(fishDto.getName());
         fish.setPrice(fishDto.getPrice());
-
         fishRepository.save(fish);
     }
 
-    public void deleteFish(int id) {
+    public void deleteFish(Long id) {
         Fish fish = fishRepository.findById(id)
                 .orElseThrow(() -> new FishNotFoundException(id));
 
