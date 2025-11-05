@@ -1,3 +1,5 @@
 /target/
 /.idea/
 /public/
+/.baserock/extractedAgent/jacocoagent.jar
+/.baserock/mock_preferences.json
